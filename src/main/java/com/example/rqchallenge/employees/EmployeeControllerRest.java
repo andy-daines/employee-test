@@ -1,15 +1,16 @@
 package com.example.rqchallenge.employees;
 
+import com.example.rqchallenge.model.ApiEmployeeArrayWrapper;
+import com.example.rqchallenge.model.ApiEmployeeWrapper;
 import com.example.rqchallenge.model.Employee;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -21,17 +22,26 @@ public class EmployeeControllerRest extends EmployeeController {
 
     @Override
     public ResponseEntity<List<Employee>> getAllEmployees() throws IOException {
-        ResponseEntity<List<Employee>> ret = restTemplate.exchange("https://dummy.restapiexample.com/api/v1/employees",
-                HttpMethod.GET, null, new ParameterizedTypeReference<List<Employee>>() {});
-        log.info("getAllEmployees returned: {}", ret.getBody());
-        return ret;
+
+        ResponseEntity<ApiEmployeeArrayWrapper> employees = restTemplate.getForEntity("https://dummy.restapiexample.com/api/v1/employees", ApiEmployeeArrayWrapper.class);
+
+        if (employees.getBody() != null) {
+            return new ResponseEntity<>(Arrays.stream(employees.getBody().data()).toList(), employees.getStatusCode());
+        } else {
+            return new ResponseEntity<>(null, employees.getStatusCode());
+        }
     }
 
     @Override
     public ResponseEntity<Employee> getEmployeeById(String id) {
-        ResponseEntity<Employee> ret = restTemplate.getForEntity("https://dummy.restapiexample.com/api/v1/employee/" + id, Employee.class);
-        log.info("getEmployeeById: {} returned: {}", id, ret.getBody());
-        return ret;
+
+        ResponseEntity<ApiEmployeeWrapper> employee = restTemplate.getForEntity("https://dummy.restapiexample.com/api/v1/employee/" + id, ApiEmployeeWrapper.class);
+
+        if (employee.getBody() != null) {
+            return new ResponseEntity<>(employee.getBody().data(), employee.getStatusCode());
+        } else {
+            return new ResponseEntity<>(null, employee.getStatusCode());
+        }
     }
 
     @Override
